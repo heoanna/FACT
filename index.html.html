@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACT 팀 역할 및 협업 스타일 진단</title>
+    <style>
+        body {
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f8fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        h2 {
+            font-size: 24px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        h3 {
+            font-size: 20px;
+            margin-top: 30px;
+        }
+        .hidden {
+            display: none;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .btn-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .progress-container {
+            height: 8px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+        .question {
+            margin-bottom: 30px;
+        }
+        .question p {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .option:hover {
+            background-color: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .option input {
+            margin-right: 12px;
+        }
+        .chart-container {
+            margin: 40px 0;
+        }
+        .chart-row {
+            margin-bottom: 20px;
+        }
+        .chart-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .chart-bar-container {
+            height: 25px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .chart-bar {
+            height: 100%;
+            background-color: #3498db;
+            width: 0;
+            transition: width 1s ease-out;
+        }
+        .result-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .result-section h4 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        #overall-result {
+            background-color: #e8f4fd;
+            border-left: 4px solid #2980b9;
+        }
+        .description {
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FACT 팀 역할 및 협업 스타일 진단</h1>
+        
+        <!-- 인트로 화면 -->
+        <div id="intro">
+            <div class="description">
+                <p>FACT 진단은 Function(기능), Action(행동), Communication(소통), Thinking(사고) 영역에서 개인의 강점과 스타일을 진단하는 도구입니다. 이 진단을 통해 팀 내에서 자신이 가장 잘 기여할 수 있는 역할과 협업 스타일을 파악할 수 있습니다.</p>
+                <p>각 질문에 대해 자신에게 가장 적합하다고 생각되는 항목을 선택해주세요. 정답이 없으며, 현재 자신의 모습을 가장 잘 반영하는 답변을 고르는 것이 중요합니다.</p>
+                <p>진단은 총 12문항으로 구성되어 있으며, 약 5-10분 정도 소요됩니다.</p>
+            </div>
+            <button id="startBtn" class="btn">진단 시작하기</button>
+        </div>
+        
+        <!-- 테스트 화면 -->
+        <div id="test" class="hidden">
+            <div class="progress-container">
+                <div id="progress" class="progress-bar"></div>
+            </div>
+            <div id="question-container"></div>
+            <div class="btn-container">
+                <button id="prevBtn" class="btn" disabled>이전</button>
+                <button id="nextBtn" class="btn">다음</button>
+            </div>
+        </div>
+        
+        <!-- 결과 화면 -->
+        <div id="results" style="display: none;">
+            <h2>진단 결과</h2>
+            
+            <div class="chart-container">
+                <div class="chart-row">
+                    <div class="chart-label">
+                        <span>Function (기능적 역할)</span>
+                        <span id="function-score">0점</span>
+                    </div>
+                    <div class="chart-bar-container">
+                        <div id="function-bar" class="chart-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="chart-row">
+                    <div class="chart-label">
+                        <span>Action (행동 스타일)</span>
+                        <span id="action-score">0점</span>
+                    </div>
+                    <div class="chart-bar-container">
+                        <div id="action-bar" class="chart-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="chart-row">
+                    <div class="chart-label">
+                        <span>Communication (소통 방식)</span>
+                        <span id="communication-score">0점</span>
+                    </div>
+                    <div class="chart-bar-container">
+                        <div id="communication-bar" class="chart-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="chart-row">
+                    <div class="chart-label">
+                        <span>Thinking (사고 패턴)</span>
+                        <span id="thinking-score">0점</span>
+                    </div>
+                    <div class="chart-bar-container">
+                        <div id="thinking-bar" class="chart-bar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <h2>상세 분석</h2>
+            
+            <h3>1. Function (기능적 역할)</h3>
+            <div id="function-result" class="result-section"></div>
+            
+            <h3>2. Action (행동 스타일)</h3>
+            <div id="action-result" class="result-section"></div>
+            
+            <h3>3. Communication (소통 방식)</h3>
+            <div id="communication-result" class="result-section"></div>
+            
+            <h3>4. Thinking (사고 패턴)</h3>
+            <div id="thinking-result" class="result-section"></div>
+            
+            <h3>종합 분석</h3>
+            <div id="overall-result" class="result-section"></div>
+            
+            <button id="restartBtn" class="btn">다시 진단하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 질문 데이터
+        const questions = [
+            {
+                category: "function",
+                question: "팀 프로젝트에서 당신이 자연스럽게 맡게 되는 역할은 무엇입니까?",
+                options: [
+                    { text: "전체적인 방향과 비전을 제시하는 역할", score: 5 },
+                    { text: "새로운 아이디어와 창의적인 해결책을 제안하는 역할", score: 4 },
+                    { text: "정보를 수집하고 분석하여 의사결정을 지원하는 역할", score: 3 },
+                    { text: "계획을 실행하고 일을 완수하는 역할", score: 2 },
+                    { text: "팀원들의 협력을 조율하고 분위기를 조성하는 역할", score: 1 }
+                ]
+            },
+            {
+                category: "function",
+                question: "다음 중 당신의 가장 큰 강점은 무엇입니까?",
+                options: [
+                    { text: "큰 그림을 보고 전략적 방향을 설정하는 능력", score: 5 },
+                    { text: "새롭고 혁신적인 아이디어를 생각해내는 능력", score: 4 },
+                    { text: "복잡한 정보를 분석하고 논리적으로 설명하는 능력", score: 3 },
+                    { text: "실질적인 해결책을 찾고 효율적으로 실행하는 능력", score: 2 },
+                    { text: "다양한 의견을 조율하고 협력적 관계를 구축하는 능력", score: 1 }
+                ]
+            },
+            {
+                category: "function",
+                question: "업무를 수행할 때 당신에게 가장 중요한 것은 무엇입니까?",
+                options: [
+                    { text: "명확한 목표와 장기적인 비전", score: 5 },
+                    { text: "창의성과 혁신의 기회", score: 4 },
+                    { text: "체계적인 분석과 정확한 정보", score: 3 },
+                    { text: "효율성과 실질적인 결과", score: 2 },
+                    { text: "팀워크와 구성원들의 만족도", score: 1 }
+                ]
+            },
+            {
+                category: "action",
+                question: "업무 상황에서 당신의 행동 스타일은 어떠합니까?",
+                options: [
+                    { text: "미래를 내다보고 장기적인 관점에서 행동한다", score: 5 },
+                    { text: "다양한 가능성을 탐색하고 새로운 접근법을 시도한다", score: 4 },
+                    { text: "체계적으로 분석하고 논리적인 순서로 진행한다", score: 3 },
+                    { text: "실용적이고 효율적으로 일을 진행한다", score: 2 },
+                    { text: "다른 사람들과 협력하며 합의를 통해 진행한다", score: 1 }
+                ]
+            },
+            {
+                category: "action",
+                question: "문제 해결 상황에서 당신이 주로 취하는 접근법은 무엇입니까?",
+                options: [
+                    { text: "전체적인 맥락을 고려하여 전략적으로 접근한다", score: 5 },
+                    { text: "기존의 틀에서 벗어나 창의적인 해결책을 모색한다", score: 4 },
+                    { text: "문제를 체계적으로 분석하고 논리적으로 해결한다", score: 3 },
+                    { text: "실질적이고 직접적인 해결책을 찾아 신속하게 적용한다", score: 2 },
+                    { text: "여러 사람의 의견을 수렴하고 합의를 통해 해결한다", score: 1 }
+                ]
+            },
+            {
+                category: "action",
+                question: "변화가 필요한 상황에서 당신은 어떻게 대응합니까?",
+                options: [
+                    { text: "변화의 필요성을 인식하고 장기적인 변화 전략을 수립한다", score: 5 },
+                    { text: "변화를 기회로 보고 새로운 가능성을 적극적으로 탐색한다", score: 4 },
+                    { text: "변화의 영향을 분석하고 체계적인 대응 계획을 세운다", score: 3 },
+                    { text: "현실적인 측면에서 변화를 평가하고 실용적으로 적응한다", score: 2 },
+                    { text: "변화가 사람들에게 미치는 영향을 고려하고 지원한다", score: 1 }
+                ]
+            },
+            {
+                category: "communication",
+                question: "당신의 주요 의사소통 방식은 어떠합니까?",
+                options: [
+                    { text: "명확하고 간결하게 핵심을 전달한다", score: 5 },
+                    { text: "생동감 있고 열정적으로 아이디어를 표현한다", score: 4 },
+                    { text: "논리적이고 체계적으로 정보를 전달한다", score: 3 },
+                    { text: "실용적이고 구체적인 내용 중심으로 소통한다", score: 2 },
+                    { text: "배려심 깊고 공감적인 방식으로 소통한다", score: 1 }
+                ]
+            },
+            {
+                category: "communication",
+                question: "회의나 토론 상황에서 당신은 주로 어떤 역할을 합니까?",
+                options: [
+                    { text: "주제를 명확히 하고 논의의 방향을 이끈다", score: 5 },
+                    { text: "다양한 아이디어를 제안하고 창의적인 관점을 제시한다", score: 4 },
+                    { text: "논리적으로 분석하고 비판적 질문을 던진다", score: 3 },
+                    { text: "실행 계획과 현실적인 방안에 초점을 맞춘다", score: 2 },
+                    { text: "다양한 의견을 경청하고 합의점을 찾는다", score: 1 }
+                ]
+            },
+            {
+                category: "communication",
+                question: "피드백을 주거나 받을 때 당신이 선호하는 방식은 무엇입니까?",
+                options: [
+                    { text: "직접적이고 명확한 피드백", score: 5 },
+                    { text: "아이디어와 가능성에 초점을 맞춘 피드백", score: 4 },
+                    { text: "분석적이고 상세한 피드백", score: 3 },
+                    { text: "실질적이고 구체적인 개선점을 제시하는 피드백", score: 2 },
+                    { text: "지지적이고 건설적인 방식의 피드백", score: 1 }
+                ]
+            },
+            {
+                category: "thinking",
+                question: "의사결정을 할 때 당신이 가장 중요하게 고려하는 요소는 무엇입니까?",
+                options: [
+                    { text: "장기적인 비전과 전략적 방향성", score: 5 },
+                    { text: "창의적인 가능성과 혁신적인 접근법", score: 4 },
+                    { text: "논리적인 분석과 객관적인 사실", score: 3 },
+                    { text: "실행 가능성과 현실적인 결과", score: 2 },
+                    { text: "사람들에게 미치는 영향과 관계적 가치", score: 1 }
+                ]
+            },
+            {
+                category: "thinking",
+                question: "복잡한 아이디어나 개념을 이해할 때 당신이 주로 활용하는 접근법은 무엇입니까?",
+                options: [
+                    { text: "전체적인 구조와 핵심 원리를 파악한다", score: 5 },
+                    { text: "다양한 관점에서 생각하고 새로운 연결고리를 찾는다", score: 4 },
+                    { text: "단계별로 체계적으로 분석하고 논리적으로 이해한다", score: 3 },
+                    { text: "실제 사례와 적용 방법을 통해 이해한다", score: 2 },
+                    { text: "그것이 사람들에게 어떤 의미와 가치가 있는지 고려한다", score: 1 }
+                ]
+            },
+            {
+                category: "thinking",
+                question: "불확실한 상황에서 의사결정을 할 때 당신의 접근 방식은 어떠합니까?",
+                options: [
+                    { text: "큰 그림과 장기적인 영향을 고려하여 직관적으로 판단한다", score: 5 },
+                    { text: "다양한 시나리오를 상상하고 창의적인 대안을 탐색한다", score: 4 },
+                    { text: "가능한 모든 정보를 수집하고 논리적으로 분석한다", score: 3 },
+                    { text: "실용적인 관점에서 리스크와 이득을 평가한다", score: 2 },
+                    { text: "관련된 사람들의 의견을 듣고 가치 기반으로 판단한다", score: 1 }
+                ]
+            }
+        ];
+        
+        // 결과 해석을 위한 데이터
+        const interpretations = {
+            function: [
+                {
+                    range: [20, 25],
+                    title: "비전 제시자 (Visionary)",
+                    description: "당신은 팀의 방향을 설정하고 큰 그림을 그리는 데 탁월한 능력을 가지고 있습니다. 장기적인 목표와 전략적 사고를 통해 팀을 이끄는 리더십을 발휘합니다. 비전을 명확히 제시하고 팀원들에게 영감을 주는 역할을 합니다."
+                },
+                {
+                    range: [16, 19],
+                    title: "혁신가 (Innovator)",
+                    description: "당신은 새로운 아이디어를 생성하고 창의적인 해결책을 찾는 데 탁월합니다. 기존의 틀에서 벗어나 혁신적인 접근법으로 팀에 기여하며, 문제를 새로운 관점에서 바라보는 능력이 뛰어납니다."
+                },
+                {
+                    range: [12, 15],
+                    title: "분석가 (Analyst)",
+                    description: "당신은 정보를 수집하고 체계적으로 분석하여 팀의 의사결정을 지원하는 역할을 합니다. 객관적인 데이터를 바탕으로 논리적인 통찰력을 제공하며, 복잡한 문제를 명확하게 이해하고 설명하는 능력이 있습니다."
+                },
+                {
+                    range: [8, 11],
+                    title: "실행가 (Implementer)",
+                    description: "당신은 아이디어를 구체적인 행동으로 옮기고 계획을 실행하는 데 탁월합니다. 체계적인 접근법으로 프로젝트를 관리하며, 실용적인 해결책을 통해 목표 달성을 지원합니다."
+                },
+                {
+                    range: [0, 7],
+                    title: "조정자 (Coordinator)",
+                    description: "당신은 팀원들 간의 관계를 조율하고 협력적인 분위기를 조성하는 데 탁월합니다. 다양한 의견을 수렴하고 갈등을 해결하며, 팀워크를 강화하는 중요한 역할을 담당합니다."
+                }
+            ],
+            action: [
+                {
+                    range: [20, 25],
+                    title: "전략적 행동가 (Strategic Actor)",
+                    description: "당신은 큰 그림을 보고 전략적으로 행동하는 경향이 있습니다. 장기적인 목표를 중심으로 행동 계획을 수립하며, 의사결정 시 전체적인 방향성과 영향력을 고려합니다."
+                },
+                {
+                    range: [16, 19],
+                    title: "창의적 행동가 (Creative Actor)",
+                    description: "당신은 새롭고 다양한 방법을 시도하는 유연한 행동 스타일을 가지고 있습니다. 문제 해결 시 기존의 틀에서 벗어나 창의적인 접근법을 모색하며, 변화에 적응하는 능력이 뛰어납니다."
+                },
+                {
+                    range: [12, 15],
+                    title: "분석적 행동가 (Analytical Actor)",
+                    description: "당신은 체계적이고 논리적인 접근법으로 행동하는 경향이 있습니다. 철저한 분석과 계획을 바탕으로 의사결정을 내리며, 정확성과 일관성을 중요시합니다."
+                },
+                {
+                    range: [8, 11],
+                    title: "실용적 행동가 (Practical Actor)",
+                    description: "당신은 실용적이고 효율적인 방식으로 행동하는 경향이 있습니다. 구체적인 결과를 중시하며, 현실적인 제약 내에서 최선의 해결책을 찾아 실행에 옮깁니다."
+                },
+                {
+                    range: [0, 7],
+                    title: "협력적 행동가 (Collaborative Actor)",
+                    description: "당신은 다른 사람들과의 협력을 통해 목표를 달성하는 행동 스타일을 가지고 있습니다. 팀워크를 중시하며, 구성원들의 참여와 합의를 바탕으로 행동합니다."
+                }
+            ],
+            communication: [
+                {
+                    range: [20, 25],
+                    title: "지시적 소통가 (Directive Communicator)",
+                    description: "당신은 명확하고 간결하게 의사를 전달하는 소통 스타일을 가지고 있습니다. 핵심 메시지를 효과적으로 전달하며, 목표 지향적인 대화를 이끄는 능력이 있습니다."
+                },
+                {
+                    range: [16, 19],
+                    title: "표현적 소통가 (Expressive Communicator)",
+                    description: "당신은 열정적이고 생동감 있는 소통 스타일을 가지고 있습니다. 흥미로운 이야기와 비유를 통해 아이디어를 전달하며, 다른 사람들에게 영감을 주는 소통 방식을 사용합니다."
+                },
+                {
+                    range: [12, 15],
+                    title: "체계적 소통가 (Systematic Communicator)",
+                    description: "당신은 논리적이고 체계적인 소통 스타일을 가지고 있습니다. 정확한 정보와 상세한 설명을 제공하며, 명확한 구조로 의사를 전달합니다."
+                },
+                {
+                    range: [8, 11],
+                    title: "실용적 소통가 (Practical Communicator)",
+                    description: "당신은 실용적이고 직접적인 소통 스타일을 가지고 있습니다. 구체적인 사례와 실행 가능한 제안을 중심으로 의사소통하며, 명확한 지침을 제공합니다."
+                },
+                {
+                    range: [0, 7],
+                    title: "공감적 소통가 (Empathetic Communicator)",
+                    description: "당신은 따뜻하고 배려심 깊은 소통 스타일을 가지고 있습니다. 상대방의 말을 경청하고 감정에 공감하며, 지지적인 메시지를 통해 관계를 강화합니다."
+                }
+            ],
+            thinking: [
+                {
+                    range: [20, 25],
+                    title: "개념적 사고가 (Conceptual Thinker)",
+                    description: "당신은 추상적이고 개념적인 사고에 강점이 있습니다. 전체적인 맥락과 패턴을 파악하는 능력이 뛰어나며, 장기적인 영향과 가능성을 고려합니다."
+                },
+                {
+                    range: [16, 19],
+                    title: "창의적 사고가 (Creative Thinker)",
+                    description: "당신은 다양한 관점에서 생각하고 새로운 연결고리를 발견하는 창의적 사고 능력이 있습니다. 기존의 틀에서 벗어나 혁신적인 아이디어를 생성하는 데 탁월합니다."
+                },
+                {
+                    range: [12, 15],
+                    title: "분석적 사고가 (Analytical Thinker)",
+                    description: "당신은 논리적이고 체계적인 사고 방식을 가지고 있습니다. 복잡한 문제를 구성 요소로 분해하고 분석하는 능력이 뛰어나며, 객관적인 사실에 기반한 판단을 내립니다."
+                },
+                {
+                    range: [8, 11],
+                    title: "실용적 사고가 (Practical Thinker)",
+                    description: "당신은 현실적이고 실용적인 사고 방식을 가지고 있습니다. 이론보다는 실제 적용 가능성과 효용성을 중시하며, 실질적인 결과를 중심으로 생각합니다."
+                },
+                {
+                    range: [0, 7],
+                    title: "관계적 사고가 (Relational Thinker)",
+                    description: "당신은 사람 중심의 사고 방식을
